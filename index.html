@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eve Kung — UX & Product Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FAF8F5;
+    --text: #1A1A1A;
+    --accent1: #c13d00;
+    --accent2: #eab791;
+    --line: #D8D2CA;
+    --placeholder-bg: #E8E4DF;
+    --placeholder-border: #C0B8B0;
+    --duration: 600ms;
+    --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── STAGE ── */
+  #stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  #track {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    will-change: transform;
+    transition: transform var(--duration) var(--ease);
+  }
+
+  /* ── SLIDES ── */
+  .slide {
+    flex: 0 0 100vw;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .slide { padding: 48px 28px; }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .chapter-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #c13d0029;
+    border-radius: 10px;
+    border: 1px solid var(--accent1);
+  }
+
+  .headline {
+    font-family: 'Syne', serif;
+    font-size: clamp(40px, 5.5vw, 48px);
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 28px;
+    max-width: 14em;
+  }
+
+  .body-copy {
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.75;
+    color: #4A4540;
+    font-weight: 300;
+    max-width: 52ch;
+  }
+
+  /* ── SLIDE INNER LAYOUT ── */
+  .slide-inner {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    gap: 80px;
+  }
+
+  .slide-text { flex: 1; min-width: 0; }
+
+  .slide-visual {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .slide-inner {
+      flex-direction: column;
+      gap: 36px;
+      align-items: flex-start;
+      justify-content: center;
+      height: 100%;
+    }
+    .slide-visual { width: 100%; }
+  }
+
+  /* ── IMAGE FRAME ── */
+  .img-placeholder {
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: block;
+  }
+
+  /* ── REAL IMAGE ── */
+  .slide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+
+  .img-caption {
+    font-size: 12px;
+    color: #A09890;
+    text-align: center;
+    margin-top: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── DECORATIVE LINE ── */
+  .deco-line {
+    width: 48px;
+    height: 1px;
+    background: var(--accent1);
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  /* ── ENTRANCE ANIMATIONS ── */
+  .anim { opacity: 0; transform: translateY(22px); transition: opacity 0.55s ease, transform 0.55s ease; }
+  .anim.delay-1 { transition-delay: 0.08s; }
+  .anim.delay-2 { transition-delay: 0.18s; }
+  .anim.delay-3 { transition-delay: 0.30s; }
+  .anim.delay-4 { transition-delay: 0.42s; }
+  .anim.delay-5 { transition-delay: 0.54s; }
+  .anim.delay-late { transition-delay: 2.5s; }
+  .slide.active .anim { opacity: 1; transform: translateY(0); }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar-wrap {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 8px;
+    background: var(--line);
+    z-index: 100;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent1);
+    transition: width var(--duration) var(--ease);
+  }
+
+  /* ── COUNTER ── */
+  #counter {
+    position: fixed;
+    bottom: 18px; right: 36px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: #A09890;
+    z-index: 100;
+    font-variant-numeric: tabular-nums;
+  }
+  #counter span { color: var(--text); font-weight: 500; }
+
+  /* ── NAV ARROWS (desktop) ── */
+  .nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: border-color 0.2s, background 0.2s;
+    color: var(--text);
+  }
+  .nav-btn:hover { border-color: var(--accent1); background: var(--accent2); }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; pointer-events: none; }
+  #btn-prev { left: 24px; }
+  #btn-next { right: 24px; }
+
+  @media (max-width: 768px) { .nav-btn { display: none; } }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 1 — My Design Journey
+  ══════════════════════════════════════════════ */
+  #slide-1 {
+    background:
+      radial-gradient(ellipse 65% 80% at 18% 50%,  rgba(250,248,245,0.95) 0%,  rgba(250,248,245,0.75) 45%, rgba(250,248,245,0) 70%),
+      radial-gradient(ellipse 50% 60% at 5%  20%,  rgba(250,248,245,0.55) 0%,  rgba(250,248,245,0)    60%),
+      radial-gradient(ellipse 40% 50% at 10% 85%,  rgba(250,248,245,0.45) 0%,  rgba(250,248,245,0)    55%),
+      url('images/slide-1-bg.png') center center / cover no-repeat;
+  }
+
+  .deco-ampersand {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(200px, 22vw, 320px);
+    color: var(--accent2);
+    line-height: 1;
+    opacity: 0.55;
+    user-select: none;
+    position: absolute;
+    right: -2vw;
+    top: 50%;
+    transform: translateY(-52%);
+  }
+
+  #slide-1 .slide-text { position: relative; z-index: 2; }
+
+  .s1-subtext {
+    font-size: 15px;
+    font-weight: 400;
+    color: #7A7268;
+    margin-top: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .s1-subtext span {
+    display: inline-block;
+    width: 4px; height: 4px;
+    background: var(--accent1);
+    border-radius: 50%;
+    vertical-align: middle;
+    margin: 0 10px;
+    position: relative;
+    top: -1px;
+  }
+
+  /* Slide 1 — photo + stickers */
+  #slide-1 .slide-inner { align-items: flex-end; }
+  #slide-1 .slide-text  { padding-bottom: 8vh; }
+
+  .s1-visual {
+    position: relative;
+    flex: 0 0 auto;
+    width: clamp(300px, 42vw, 540px);
+    height: clamp(380px, 78vh, 640px);
+  }
+
+  #s1-photo {
+    position: absolute;
+    bottom: -15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    display: block;
+    z-index: 1;
+  }
+
+  /* Sticker base */
+  .s1-sticker {
+    position: absolute;
+    width: clamp(70px, 8vw, 110px);
+    height: auto;
+    user-select: none;
+    z-index: 2;
+    will-change: rotate, translate;
+    filter: drop-shadow(0 5px 14px rgba(0,0,0,0.13));
+  }
+
+  /* Sticker positions */
+  #s1-rays    { top:  6%; left: 28%; }
+  #s1-rainbow { top:  -8%; right:  4%; }
+  #s1-crown   { top: 42%; left:  -12%; }
+  #s1-heart   { top: 40%; right: -6%; }
+
+  /* Wiggle keyframes */
+  @keyframes s1-wiggle-a {
+    0%, 100% { rotate: -12deg; }
+    50%       { rotate:  12deg; }
+  }
+  @keyframes s1-wiggle-b {
+    0%, 100% { rotate:   8deg; }
+    50%       { rotate:  -8deg; }
+  }
+  @keyframes s1-wiggle-c {
+    0%, 100% { rotate: -14deg; }
+    50%       { rotate:   7deg; }
+  }
+  @keyframes s1-wiggle-d {
+    0%, 100% { rotate:   6deg; }
+    50%       { rotate: -12deg; }
+  }
+
+  #s1-rays    { animation: s1-wiggle-a 3.2s ease-in-out infinite; animation-delay: 0s; }
+  #s1-rainbow { animation: s1-wiggle-b 2.8s ease-in-out infinite; animation-delay: -0.9s; }
+  #s1-crown   { animation: s1-wiggle-c 3.6s ease-in-out infinite; animation-delay: -1.7s; }
+  #s1-heart   { animation: s1-wiggle-d 3.0s ease-in-out infinite; animation-delay: -0.5s; }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 2 — Unexpected Beginning
+  ══════════════════════════════════════════════ */
+  .deco-question {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(180px, 20vw, 280px);
+    color: var(--accent2);
+    line-height: 1;
+    opacity: 0.45;
+    user-select: none;
+    position: absolute;
+    right: 6vw;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #slide-2 .slide-text { position: relative; z-index: 2; max-width: 580px; }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 3 — The Spark
+  ══════════════════════════════════════════════ */
+  /* default two-col layout */
+
+  /* ══════════════════════════════════════════════
+     SLIDE 5 — Map
+  ══════════════════════════════════════════════ */
+  #slide-5 #map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    z-index: 0;
+  }
+
+  #slide-5 .slide-inner {
+    position: relative;
+    z-index: 1;
+    gap: 280px;
+  }
+
+  #slide-5 .slide-text {
+    background: rgba(250, 248, 245, 0.88);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 16px;
+    padding: 36px 40px;
+    max-width: 480px;
+  }
+
+
+  /* Custom Leaflet marker */
+  .map-pin {
+    width: 14px; height: 14px;
+    background: #E8613C;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(232,97,60,0.25);
+  }
+
+  /* Suppress default Leaflet attribution link styling */
+  .leaflet-control-attribution { font-size: 9px; }
+
+  /* Custom tooltip */
+  .map-tooltip {
+    background: #1A1A1A !important;
+    border: none !important;
+    border-radius: 6px !important;
+    color: #FAF8F5 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.06em !important;
+    padding: 5px 10px !important;
+    box-shadow: none !important;
+    white-space: nowrap;
+  }
+  .map-tooltip::before { display: none !important; }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 6 — Work at UF
+  ══════════════════════════════════════════════ */
+  #slide-6 .slide-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  #slide-6 .slide-text { flex: 0 0 auto; width: 100%; }
+  #slide-6 .headline { max-width: 22em; }
+  #slide-6 .body-copy { max-width: 80ch; }
+  #slide-6 .slide-visual { width: 100%; flex: 1 1 auto; min-width: 0; }
+
+  .work-samples {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    width: 100%;
+  }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 7 — Outside of Work
+  ══════════════════════════════════════════════ */
+  #slide-hobby .slide-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    height: 100%;
+    justify-content: center;
+  }
+
+  #slide-hobby .slide-text { flex: 0 0 auto; }
+
+  .hobby-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr;
+    gap: 14px;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    max-height: 52vh;
+  }
+
+  @media (max-width: 768px) {
+    .hobby-grid {
+      grid-template-columns: 1fr 1fr;
+      max-height: none;
+    }
+    .hobby-card:last-child {
+      grid-column: 1 / -1;
+      height: 220px;
+    }
+  }
+
+  .hobby-card {
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: var(--placeholder-bg);
+  }
+
+  .hobby-card .slide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+  }
+
+  .hobby-label {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(250, 248, 245, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    z-index: 2;
+  }
+
+  .hobby-iframe-wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .hobby-iframe-wrap iframe {
+    width: 200%;
+    height: 200%;
+    border: none;
+    transform: scale(0.5);
+    transform-origin: top left;
+    pointer-events: none;
+  }
+
+  .hobby-iframe-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.2s;
+  }
+
+  .hobby-card:hover .hobby-iframe-overlay {
+    background: rgba(26, 26, 26, 0.35);
+  }
+
+  .visit-btn {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 100px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .hobby-card:hover .visit-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ══════════════════════════════════════════════
+     SLIDE 8 — What's Next
+  ══════════════════════════════════════════════ */
+
+  /* Mesh dark gradient background */
+  #slide-8 {
+    background:
+      radial-gradient(ellipse at 15% 60%, rgba(139, 50, 220, 0.45) 0%, transparent 52%),
+      radial-gradient(ellipse at 80% 15%, rgba(30, 90, 220, 0.38) 0%, transparent 50%),
+      radial-gradient(ellipse at 65% 85%, rgba(220, 50, 110, 0.32) 0%, transparent 48%),
+      radial-gradient(ellipse at 45% 40%, rgba(60, 160, 240, 0.22) 0%, transparent 55%),
+      #0b0b18;
+  }
+
+ #slide-8 .body-copy {
+  max-width: 100%;
+ }
+  /* Liquid glass text block */
+  #slide-8 .slide-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 760px;
+    height: 80vh;
+    gap: 0;
+    /* glass surface */
+    background: rgba(255, 255, 255, 0.878);
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.08);
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.08);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    border-radius: 28px;
+    padding: 48px 52px;
+    box-shadow:
+      0 12px 48px rgba(0, 0, 0, 0.45),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      inset 1px 0 0 rgba(255, 255, 255, 0.18),
+      inset -1px 0 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+  }
+
+  /* Subtle inner highlight shimmer */
+  #slide-8 .slide-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.04) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  /* Text colours inside glass — keep readable on white frosted bg */
+  #slide-8 .headline { color: #1A1A1A; }
+  #slide-8 .body-copy { color: #3A3530; }
+  #slide-8 .chapter-tag { color: var(--accent1); }
+  body:has(#slide-8.active) #counter,
+  body:has(#slide-8.active) #counter span { color: #fff; }
+
+  .para-block { padding: 22px 0; }
+
+  .para-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .s8-contact {
+    margin-top: 32px;
+    font-size: 12px;
+    color: #ffffff;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .s8-contact a {
+    color: var(--accent1);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .s8-contact a:hover { border-color: var(--accent1); }
+
+  .s8-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* ── slide 8 body smaller ── */
+  #slide-8 .body-copy { font-size: clamp(14px, 1.3vw, 16px); }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="track">
+
+    <!-- ══ SLIDE 1 ══ -->
+    <section class="slide" id="slide-1">
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">Hello</span>
+          <span class="deco-line anim delay-1"></span>
+          <h1 class="headline anim delay-2">My Design Journey</h1>
+          <p class="s1-subtext anim delay-3">Eve Kung <span></span> UX &amp; Product Designer</p>
+        </div>
+        <div class="s1-visual anim delay-4">
+          <img class="s1-sticker" id="s1-rays"    src="images/decor-01.png" alt="">
+          <img class="s1-sticker" id="s1-heart"  src="images/decor-02.png" alt="">
+          <img class="s1-sticker" id="s1-crown"  style="width: 30%;" src="images/decor-03.png" alt="">
+          <img class="s1-sticker" id="s1-rainbow"  style="width: 24%;" src="images/decor-04.png" alt="">
+          <img id="s1-photo" src="images/profile.png" alt="Eve Kung">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 2 ══ -->
+    <section class="slide" id="slide-2">
+      <div class="deco-question anim delay-5">?</div>
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">Where It Started</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">I graduated from law school…</h2>
+          <p class="body-copy anim delay-3">And immediately felt lost. Law school sharpened my analytical thinking, but it wasn't where my creative energy wanted to go. That tension pushed me to look somewhere new.</p>
+        </div>
+         <div class="slide-visual anim delay-4">
+             <div class="img-placeholder" id="ph-confused" style="width: clamp(300px,42vw,300px); height: clamp(300px,38vw,300px);">
+              <img class="slide-img" src="images/confused.png" alt="confued emoji">
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 3 ══ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">The Turning Point</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">An internship that changed everything.</h2>
+          <p class="body-copy anim delay-3">At PicCollage, I was surrounded by incredibly talented people who moved fast and cared deeply about what they built. Watching them work made one thing clear: I wanted to pursue design. So I decided to apply for a masters program for UI/UX Design.</p>
+        </div>
+        <div class="slide-visual anim delay-4">
+          <div>
+            <div class="img-placeholder" id="ph-piccollage" style="width: clamp(300px,42vw,520px); height: clamp(300px,38vw,480px);">
+              <img class="slide-img" src="images/piccollage.JPG" alt="PicCollage internship photo">
+            </div>
+            <p class="img-caption">PicCollage · Taipei</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 4 ══ -->
+    <section class="slide" id="slide-4">
+      <div class="slide-inner" style="flex-direction: row-reverse;">
+        <div class="slide-text">
+          <span class="chapter-tag anim">Graduate School</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">MA Program at the Academy of Art University</h2>
+          <p class="body-copy anim delay-3">I learned so much during my time at the Academy of Art University. I met mentors that shaped my perspective on design and innovation. I also got to showcase my work at the 2023 Spring Show.😆</p>
+        </div>
+        <div class="slide-visual anim delay-4">
+          <div class="img-placeholder" id="ph-springshow" style="width: clamp(260px,34vw,420px); height: clamp(300px,38vw,480px);">
+            <img class="slide-img" src="images/springshow.JPG" alt="2023 Spring Show photo">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 5 ══ -->
+    <section class="slide" id="slide-5">
+      <div id="map"></div>
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">A New Chapter</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">After grad school, I moved halfway across the United States.</h2>
+          <p class="body-copy anim delay-3">To a small city in Florida called Gainesville, home to the University of Florida, starting my new journey as Web & UX Designer at the university.</p>
+        </div>
+        <div class="slide-visual anim delay-3">
+          <div class="img-placeholder" style="width: clamp(260px,34vw,420px); height: clamp(260px,34vw,420px);">
+            <img class="slide-img" src="images/uf-campus.png" alt="University of Florida campus">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 6 ══ -->
+    <section class="slide" id="slide-6">
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">What I Do</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">Where design meets research and emerging tech.</h2>
+          <p class="body-copy anim delay-3">My work at the University of Florida spans visual design, product design, and emerging technology. I've designed content management systems, dashboards, and WordPress plugins. Our team operates like an agency, we collaborate with researchers and faculty to build platforms that support their work.</p>
+        </div>
+        <div class="slide-visual anim delay-4">
+          <div class="work-samples">
+            <div class="img-placeholder" id="ph-work1" style="flex:1; height: clamp(200px,32vh,420px); border-radius:10px;">
+              <img class="slide-img" src="images/work-1.jpg" alt="Work sample 1">
+              <span class="hobby-label">Agentic AI User Testing</span>
+            </div>
+            <div class="img-placeholder" id="ph-work2" style="flex:1; height: clamp(200px,32vh,420px); border-radius:10px;">
+              <img class="slide-img" src="images/work-2.jpg" alt="Work sample 2">
+              <span class="hobby-label">Agentic AI User Testing</span>
+            </div>
+            <div class="img-placeholder" id="ph-work3" style="flex:1; height: clamp(200px,32vh,420px); border-radius:10px;">
+              <img class="slide-img" src="images/work-3.jpeg" alt="Work sample 3">
+              <span class="hobby-label">AR App Testing</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 7 — Outside of Work ══ -->
+    <section class="slide" id="slide-hobby">
+      <div class="slide-inner">
+        <div class="slide-text">
+          <span class="chapter-tag anim">Outside of Work</span>
+          <span class="deco-line anim delay-1"></span>
+          <h2 class="headline anim delay-2">Crochet, nails, vibe coding &amp; cats.</h2>
+          <p class="body-copy anim delay-3">When I'm not designing, you'll find me crocheting, doing my own gel nails, building silly side projects with AI, and spending time with my cats.</p>
+        </div>
+        <div class="hobby-grid anim delay-4">
+          <div class="hobby-card">
+            <img class="slide-img" src="images/crochet.JPG" alt="Crochet work">
+            <span class="hobby-label">Crochet</span>
+          </div>
+          <div class="hobby-card">
+           <div class="hobby-iframe-wrap">
+            <img class="slide-img" src="images/nails.JPG" alt="Gel nail work">
+              <a class="hobby-iframe-overlay" href="https://gel-nail.vercel.app/" target="_blank" rel="noopener" aria-label="Visit gel-nail.vercel.app">
+                <span class="visit-btn">Visit Site ↗</span>
+              </a>
+            </div>
+            <span class="hobby-label">Gel Nails ↗</span>
+          </div>
+          <div class="hobby-card">
+            <div class="hobby-iframe-wrap">
+              <iframe src="https://cats.evekung.com/" title="cats.evekung.com — vibe coding project" scrolling="no" tabindex="-1"></iframe>
+              <a class="hobby-iframe-overlay" href="https://cats.evekung.com/" target="_blank" rel="noopener" aria-label="Visit cats.evekung.com">
+                <span class="visit-btn">Visit Site ↗</span>
+              </a>
+            </div>
+            <span class="hobby-label" style="z-index:3;">Vibe Coding ↗</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SLIDE 8 ══ -->
+     
+    <section class="slide" id="slide-8">
+      <div class="slide-inner">
+        <span class="chapter-tag anim">Looking Ahead</span>
+        <span class="deco-line anim delay-1"></span>
+        <h2 class="headline anim delay-2">Ready for my next adventure.</h2>
+
+        <div class="anim delay-3" style="width:100%;">
+          <div class="para-block">
+            <p class="body-copy">My current role is fast-paced and allows me to gain expereicne on a variety of projects. I've loved working across many teams and project types. But I've realized I want to go deeper on a single product: watching it evolve, iterating on the experience, and seeing the long-term impact of design decisions.</p>
+          </div>
+          <div class="para-divider"></div>
+
+          <div class="para-divider"></div>
+          <div class="para-block">
+            <p class="body-copy">As someone from Taiwan, I've always felt connected to the tech ecosystem in Asia. Time in the U.S. has shaped how I think about product and design culture, but I'm ready to contribute more directly to products that serve this region. Hong Kong is particularly exciting: a sophisticated logistics and business hub operating at regional and global scale. I want to design for the real, complex problems that come with that.</p>
+          </div>
+        </div>
+
+        <div class="s8-contact anim delay-4">
+          <span>Eve Kung</span>
+          <span style="color:var(--line)">·</span>
+          <a href="https://chihjoukung.com" target="_blank" rel="noopener">chihjoukung.com</a>
+        </div>
+      </div>
+
+      <p class="s8-hint anim delay-5">← scroll or swipe to revisit</p>
+    </section>
+
+  </div><!-- /track -->
+</div><!-- /stage -->
+
+<!-- Progress bar -->
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<!-- Slide counter -->
+<div id="counter"><span id="counter-current">01</span> / <span id="counter-total">07</span></div>
+
+<!-- Nav buttons -->
+<button class="nav-btn" id="btn-prev" aria-label="Previous slide" disabled>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+<button class="nav-btn" id="btn-next" aria-label="Next slide">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+// ── Leaflet map for Gainesville ──
+(function () {
+  const GAINESVILLE = [29.6516, -82.3248];
+  let mapInstance = null;
+
+  function initMap() {
+    if (mapInstance) return;
+    mapInstance = L.map('map', {
+      center: GAINESVILLE,
+      zoom: 12,
+      zoomControl: false,
+      attributionControl: true,
+      scrollWheelZoom: false,
+      dragging: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+    });
+
+    // CartoDB Positron — warm light tiles, no API key
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(mapInstance);
+
+    // Custom coral dot marker
+    const pinIcon = L.divIcon({
+      className: '',
+      html: '<div class="map-pin"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+    });
+
+    L.marker(GAINESVILLE, { icon: pinIcon })
+      .addTo(mapInstance)
+      .bindTooltip('Gainesville, FL', {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -10],
+        className: 'map-tooltip',
+      });
+  }
+
+  // Init map the first time slide 5 becomes active
+  // (Leaflet needs the container to be visible to calculate size)
+  const slide5 = document.getElementById('slide-5');
+  const observer = new MutationObserver(() => {
+    if (slide5.classList.contains('active')) {
+      setTimeout(initMap, 50);
+    }
+  });
+  observer.observe(slide5, { attributes: true, attributeFilter: ['class'] });
+  // Also init if slide 5 is somehow the first active slide
+  if (slide5.classList.contains('active')) initMap();
+})();
+
+(function () {
+  const track      = document.getElementById('track');
+  const slides     = Array.from(document.querySelectorAll('.slide'));
+  const bar        = document.getElementById('progress-bar');
+  const counterEl  = document.getElementById('counter-current');
+  const btnPrev    = document.getElementById('btn-prev');
+  const btnNext    = document.getElementById('btn-next');
+  const total      = slides.length;
+  let current      = 0;
+  let animating    = false;
+
+  function pad(n) { return String(n + 1).padStart(2, '0'); }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current || animating) return;
+    animating = true;
+
+    // Remove active from current slide (reset anims)
+    slides[current].classList.remove('active');
+
+    current = idx;
+    track.style.transform = `translateX(-${current * 100}vw)`;
+
+    // Activate new slide after a short delay so CSS transition fires
+    setTimeout(() => {
+      slides[current].classList.add('active');
+    }, 50);
+
+    // Update UI
+    const pct = total > 1 ? (current / (total - 1)) * 100 : 100;
+    bar.style.width = pct + '%';
+    counterEl.textContent = pad(current);
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+
+    setTimeout(() => { animating = false; }, 650);
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  // Init
+  slides[0].classList.add('active');
+  bar.style.width = total > 1 ? '0%' : '100%';
+  btnPrev.disabled = true;
+  document.getElementById('counter-total').textContent = String(total).padStart(2, '0');
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); prev(); }
+  });
+
+  // Mouse wheel / trackpad
+  let wheelAccum = 0;
+  let wheelTimer = null;
+  document.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    wheelAccum += e.deltaY + e.deltaX;
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => { wheelAccum = 0; }, 200);
+    if (Math.abs(wheelAccum) > 60) {
+      wheelAccum > 0 ? next() : prev();
+      wheelAccum = 0;
+    }
+  }, { passive: false });
+
+  // Touch swipe
+  let touchStartX = 0;
+  let touchStartY = 0;
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    const dy = touchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx > 0 ? next() : prev();
+    }
+  }, { passive: true });
+
+  // Button clicks
+  btnPrev.addEventListener('click', prev);
+  btnNext.addEventListener('click', next);
+})();
+
+// ── Sticker cursor parallax for slide 1 ──
+(function () {
+  const slide1   = document.getElementById('slide-1');
+  const stickers = document.querySelectorAll('.s1-sticker');
+  // Parallax depth per sticker (larger = moves more)
+  const depths   = [0.018, 0.028, 0.022, 0.032];
+  let cx = 0.5, cy = 0.5; // normalised cursor (0..1), start centered
+  let rafId = null;
+
+  document.addEventListener('mousemove', (e) => {
+    if (!slide1.classList.contains('active')) return;
+    cx = e.clientX / window.innerWidth;
+    cy = e.clientY / window.innerHeight;
+    if (!rafId) rafId = requestAnimationFrame(applyParallax);
+  });
+
+  function applyParallax() {
+    rafId = null;
+    const ox = (cx - 0.5) * window.innerWidth;
+    const oy = (cy - 0.5) * window.innerHeight;
+    stickers.forEach((s, i) => {
+      const d  = depths[i] ?? 0.02;
+      s.style.translate = `${ox * d}px ${oy * d}px`;
+    });
+  }
+})();
+</script>
+</body>
+</html>
