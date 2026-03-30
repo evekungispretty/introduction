@@ -349,6 +349,13 @@
      SLIDE 3 — The Spark
   ══════════════════════════════════════════════ */
   /* default two-col layout */
+  #slide-3 {
+    background:
+      radial-gradient(ellipse 65% 80% at 18% 50%,  rgba(250,248,245,0.95) 0%,  rgba(250,248,245,0.75) 45%, rgba(250,248,245,0) 70%),
+      radial-gradient(ellipse 50% 60% at 5%  20%,  rgba(250,248,245,0.55) 0%,  rgba(250,248,245,0)    60%),
+      radial-gradient(ellipse 40% 50% at 10% 85%,  rgba(250,248,245,0.45) 0%,  rgba(250,248,245,0)    55%),
+      url('images/slide3-bg.png') center center / cover no-repeat;
+  }
 
   /* ══════════════════════════════════════════════
      SLIDE 5 — Map
@@ -365,7 +372,9 @@
   #slide-5 .slide-inner {
     position: relative;
     z-index: 1;
-    gap: 280px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
   }
 
   #slide-5 .slide-text {
@@ -374,8 +383,12 @@
     -webkit-backdrop-filter: blur(6px);
     border-radius: 16px;
     padding: 36px 40px;
-    max-width: 480px;
+    flex: 0 0 auto;
+    width: 100%;
   }
+  #slide-5 .headline { max-width: 22em; }
+  #slide-5 .body-copy { max-width: 80ch; }
+  #slide-5 .slide-visual { width: 100%; flex: 1 1 auto; min-width: 0; }
 
 
   /* Custom Leaflet marker */
@@ -406,20 +419,7 @@
   }
   .map-tooltip::before { display: none !important; }
 
-  /* ══════════════════════════════════════════════
-     SLIDE 6 — Work at UF
-  ══════════════════════════════════════════════ */
-  #slide-6 .slide-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 32px;
-  }
-  #slide-6 .slide-text { flex: 0 0 auto; width: 100%; }
-  #slide-6 .headline { max-width: 22em; }
-  #slide-6 .body-copy { max-width: 80ch; }
-  #slide-6 .slide-visual { width: 100%; flex: 1 1 auto; min-width: 0; }
-
-  .work-samples {
+.work-samples {
     display: flex;
     flex-direction: row;
     gap: 16px;
@@ -624,7 +624,7 @@
   .s8-contact {
     margin-top: 32px;
     font-size: 12px;
-    color: #ffffff;
+    color: (--accent1);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -729,9 +729,13 @@
           <p class="body-copy anim delay-3">I learned so much during my time at the Academy of Art University. I met mentors that shaped my perspective on design and innovation. I also got to showcase my work at the 2023 Spring Show.😆 During semesters, I also worked with starup companies to build apps and SAAS products.</p>
         </div>
         <div class="slide-visual anim delay-4">
+          <div>
           <div class="img-placeholder" id="ph-springshow" style="width: clamp(260px,34vw,420px); height: clamp(300px,38vw,480px);">
             <img class="slide-img" src="images/springshow.JPG" alt="2023 Spring Show photo">
           </div>
+            <p class="img-caption">Spring Show · San Francisco</p>
+           </div>
+
         </div>
       </div>
     </section>
@@ -741,27 +745,10 @@
       <div id="map"></div>
       <div class="slide-inner">
         <div class="slide-text">
-          <span class="chapter-tag anim">A New Chapter</span>
+          <span class="chapter-tag anim">What I Do Now</span>
           <span class="deco-line anim delay-1"></span>
-          <h2 class="headline anim delay-2">After grad school, I moved halfway across the United States.</h2>
-          <p class="body-copy anim delay-3">To a small city in Florida called Gainesville, home to the University of Florida, starting my new journey as Web & UX Designer at the university.</p>
-        </div>
-        <div class="slide-visual anim delay-3">
-          <div class="img-placeholder" style="width: clamp(260px,34vw,420px); height: clamp(260px,34vw,420px);">
-            <img class="slide-img" src="images/uf-campus.png" alt="University of Florida campus">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ SLIDE 6 ══ -->
-    <section class="slide" id="slide-6">
-      <div class="slide-inner">
-        <div class="slide-text">
-          <span class="chapter-tag anim">What I Do</span>
-          <span class="deco-line anim delay-1"></span>
-          <h2 class="headline anim delay-2">Where design meets research and emerging tech.</h2>
-          <p class="body-copy anim delay-3">My work at the University of Florida spans visual design, product design, and emerging technology. I've designed content management systems, dashboards, and WordPress plugins. Our team operates like an agency, we collaborate with researchers and faculty to build platforms that support their work.</p>
+          <h2 class="headline anim delay-2">As a UI/UX Designer at the University of Florida.</h2>
+          <p class="body-copy anim delay-3">My work at the University of Florida spans visual design, product design, and emerging technology. I've designed content management systems, dashboards, and WordPress plugins. Our team operates like an agency, we collaborate with researchers and faculty to build platforms that support their work. This is really where design meets research and emerging tech!</p>
         </div>
         <div class="slide-visual anim delay-4">
           <div class="work-samples">
@@ -824,17 +811,18 @@
         <div class="slide-text">
           <span class="chapter-tag anim">Side Quest</span>
           <span class="deco-line anim delay-1"></span>
-          <h2 class="headline anim delay-2">I also teach a course at the Digital Worlds Institute.</h2>
+          <h2 class="headline anim delay-2">I also teach a course at the <a href="https://digitalworlds.ufl.edu/" target="_blank" rel="noopener">Digital Worlds Institute</a>.</h2>
           <p class="body-copy anim delay-3">It is extremely rewarding and a challenging experience to work with college kids! (Also humbles you with Gen Z stares)</p>
         </div>
-        <div class="hobby-grid anim delay-4">
-          <div class="hobby-card">
-            <img class="slide-img" src="images/teach01.jpg" alt="Teaching at UF Digital Worlds">
-          </div>
-          <div class="hobby-card">
-            <img class="slide-img" src="images/teach02.jpg" alt="Teaching at UF Digital Worlds">
-          </div>
-        </div>
+            <div class="hobby-grid">
+              <div class="hobby-card">
+                <img class="slide-img" src="images/teach01.jpg" alt="Teaching at UF Digital Worlds">
+              </div>
+              <div class="hobby-card">
+                <img class="slide-img" src="images/teach03.png" alt="Teaching at UF Digital Worlds">
+              </div>
+            </div>
+
       </div>
     </section>
 
@@ -848,19 +836,14 @@
 
         <div class="anim delay-3" style="width:100%;">
           <div class="para-block">
-            <p class="body-copy">My current role is fast-paced and allows me to gain expereicne on a variety of projects. I've loved working across many teams and project types. But I've realized I want to go deeper on a single product: watching it evolve, iterating on the experience, and seeing the long-term impact of design decisions.</p>
+            <p class="body-copy">I’ve really appreciated that my current role is fast-paced and lets me work across different teams and projects. It’s given me a lot of breadth. But over time, I’ve realized I want to go deeper on one product—really follow its evolution, iterate thoughtfully, and see the longer-term impact of the work</p>
           </div>
-          <div class="para-divider"></div>
-
-          <div class="para-divider"></div>
-          <div class="para-block">
-            <p class="body-copy">As someone from Taiwan, I've always felt connected to the tech ecosystem in Asia. Time in the U.S. has shaped how I think about product and design culture, but I'm ready to contribute more directly to products that serve this region. Hong Kong is particularly exciting: a sophisticated logistics and business hub operating at regional and global scale. I want to design for the real, complex problems that come with that.</p>
-          </div>
+          
         </div>
 
         <div class="s8-contact anim delay-4">
           <span>Eve Kung</span>
-          <span style="color:var(--line)">·</span>
+          <span style="color:var(--accent1)">·</span>
           <a href="https://chihjoukung.com" target="_blank" rel="noopener">chihjoukung.com</a>
         </div>
       </div>
@@ -896,7 +879,7 @@
     if (mapInstance) return;
     mapInstance = L.map('map', {
       center: GAINESVILLE,
-      zoom: 12,
+      zoom: 10,
       zoomControl: false,
       attributionControl: true,
       scrollWheelZoom: false,
